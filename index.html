@@ -1,0 +1,305 @@
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Send, ChevronRight, X, Smartphone, Wallet, Banknote, Coffee, Utensils, Pizza, CupSoda, Trash2 } from 'lucide-react';
+
+// --- 全量菜單數據 (根據截圖完整錄入) ---
+const MENU_DATA = [
+  {
+    category: "漢堡類",
+    description: "可加起司 +10 | 加蛋 +10",
+    items: [
+      { name: "豬肉漢堡", price: 35 }, { name: "豬排漢堡", price: 45 },
+      { name: "香雞漢堡", price: 35 }, { name: "鮪魚漢堡", price: 40 },
+      { name: "培根豬肉漢堡", price: 50 }, { name: "蝦肉漢堡", price: 45 },
+      { name: "薯餅漢堡", price: 40 }, { name: "卡啦雞腿堡(原/辣)", price: 60 },
+      { name: "西西里雞腿堡", price: 55 }, { name: "煙燻雞肉漢堡", price: 45 },
+      { name: "檸檬雞柳條漢堡", price: 45 }, { name: "牛肉漢堡", price: 50 }
+    ]
+  },
+  {
+    category: "吐司類",
+    description: "可加起司 +10",
+    items: [
+      { name: "烤豬肉總匯", price: 50 }, { name: "烤豬排總匯", price: 60 },
+      { name: "烤煎蛋吐司", price: 25 }, { name: "烤火腿蛋吐司", price: 30 },
+      { name: "烤起司蛋吐司", price: 30 }, { name: "烤肉鬆蛋吐司", price: 35 },
+      { name: "烤玉米蛋吐司", price: 40 }, { name: "烤培根蛋吐司", price: 40 },
+      { name: "烤鮪魚蛋吐司", price: 40 }, { name: "烤豬肉蛋吐司", price: 40 },
+      { name: "烤豬排蛋吐司", price: 50 }
+    ]
+  },
+  {
+    category: "蛋餅類",
+    description: "可加起司 +10",
+    items: [
+      { name: "原味蛋餅", price: 25 }, { name: "火腿蛋餅", price: 30 },
+      { name: "起司蛋餅", price: 30 }, { name: "熱狗蛋餅", price: 35 },
+      { name: "肉鬆蛋餅", price: 35 }, { name: "玉米蛋餅", price: 40 },
+      { name: "培根蛋餅", price: 40 }, { name: "鮪魚蛋餅", price: 40 },
+      { name: "九層塔蛋餅", price: 30 }, { name: "蔬菜蛋餅", price: 30 },
+      { name: "薯餅蛋餅", price: 40 }, { name: "豬肉蛋餅", price: 40 },
+      { name: "九層塔乳酪絲蛋餅", price: 40 }, { name: "煙燻雞肉蛋餅", price: 45 },
+      { name: "培根起司蛋餅", price: 45 }, { name: "豬排蛋餅", price: 50 }
+    ]
+  },
+  {
+    category: "麵類/點心類",
+    items: [
+      { name: "鐵板麵(黑胡椒/蘑菇)", price: 55 }, { name: "宮保雞丁麵", price: 60 },
+      { name: "三杯雞丁麵", price: 60 }, { name: "義大利肉醬麵", price: 55 },
+      { name: "地瓜餅", price: 45 }, { name: "熱狗(4條)", price: 25 },
+      { name: "雞塊(5塊)", price: 35 }, { name: "檸檬雞柳條(2條)", price: 30 },
+      { name: "黃金脆薯", price: 35 }, { name: "薯條(細繩)", price: 25 },
+      { name: "蘿蔔糕(2片)", price: 40 }, { name: "煎餃(8顆)", price: 40 },
+      { name: "蔥燒鐵板麵", price: 55 }, { name: "薯餅(一片)", price: 20 },
+      { name: "雞球(8顆)", price: 30 }, { name: "蔥抓餅", price: 40 },
+      { name: "三星蔥餅", price: 45 }, { name: "荷包蛋", price: 15 }
+    ]
+  },
+  {
+    category: "飲品",
+    description: "中杯價 (大杯 +5)",
+    items: [
+      { name: "紅茶", price: 15 }, { name: "奶茶", price: 20 },
+      { name: "鮮奶茶", price: 25 }, { name: "咖啡", price: 25 },
+      { name: "柳橙汁", price: 25 }, { name: "拿鐵咖啡", price: 30 },
+      { name: "豆漿", price: 20 }, { name: "薏仁漿", price: 25 },
+      { name: "綠豆沙", price: 30 }, { name: "可樂", price: 20 },
+      { name: "可爾必思", price: 25 }, { name: "玉米濃湯", price: 40 }
+    ]
+  },
+  {
+    category: "特惠組合餐",
+    items: [
+      { name: "A餐", price: 55 }, { name: "B餐", price: 65 },
+      { name: "C餐", price: 75 }, { name: "兒童餐", price: 50 }
+    ]
+  }
+];
+
+const App = () => {
+  const [cart, setCart] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(MENU_DATA[0].category);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [cryptoType, setCryptoType] = useState('USDT'); // USDT or SOL
+  const [tableNumber, setTableNumber] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderStatus, setOrderStatus] = useState(null);
+
+  const addToCart = (item, extraPrice = 0, extraLabel = "") => {
+    const cartItem = {
+      ...item,
+      uniqueId: Date.now() + Math.random(),
+      finalPrice: item.price + extraPrice,
+      extraLabel: extraLabel
+    };
+    setCart([...cart, cartItem]);
+  };
+
+  const removeFromCart = (uniqueId) => {
+    setCart(cart.filter(item => item.uniqueId !== uniqueId));
+  };
+
+  const totalPrice = cart.reduce((sum, item) => sum + item.finalPrice, 0);
+  const solPrice = (totalPrice / 32 / 150).toFixed(4); // 粗略模擬匯率 (台幣->美金->SOL)
+
+  const handleCheckout = async () => {
+    if (cart.length === 0 || !tableNumber) {
+      alert("請填寫桌號或姓名");
+      return;
+    }
+    setIsSubmitting(true);
+    
+    // 模擬 LINE Notify 傳送
+    const message = `
+DOMO 新訂單 [${tableNumber}]
+-----------------
+付款：${paymentMethod === 'crypto' ? `虛擬貨幣 (${cryptoType})` : paymentMethod}
+總額：NT$ ${totalPrice}
+明細：
+${cart.map(i => `- ${i.name} ${i.extraLabel ? `(${i.extraLabel})` : ''} $${i.finalPrice}`).join('\n')}
+    `;
+    
+    console.log("傳送訊息至 LINE Notify:", message);
+    await new Promise(r => setTimeout(r, 1500));
+    setOrderStatus('success');
+    setCart([]);
+    setIsSubmitting(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-900 pb-20">
+      {/* Header */}
+      <div className="bg-amber-400 p-6 sticky top-0 z-20 shadow-sm">
+        <h1 className="text-2xl font-black italic">DOMO BREAKFAST</h1>
+        <div className="flex justify-between items-center mt-1">
+          <p className="text-xs font-bold">2981-4229 | 三重區</p>
+          <div className="bg-white/40 px-2 py-0.5 rounded text-[10px] font-bold">手機點餐系統</div>
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div className="flex overflow-x-auto bg-white border-b sticky top-[84px] z-10 no-scrollbar">
+        {MENU_DATA.map(cat => (
+          <button
+            key={cat.category}
+            onClick={() => setActiveCategory(cat.category)}
+            className={`px-6 py-3 whitespace-nowrap font-bold text-sm transition-colors ${activeCategory === cat.category ? 'text-amber-600 border-b-4 border-amber-500' : 'text-gray-400'}`}
+          >
+            {cat.category}
+          </button>
+        ))}
+      </div>
+
+      {/* Menu List */}
+      <div className="p-4 space-y-6">
+        {MENU_DATA.filter(c => c.category === activeCategory).map(section => (
+          <div key={section.category}>
+            {section.description && <p className="text-xs text-amber-600 font-bold mb-3">★ {section.description}</p>}
+            <div className="grid grid-cols-1 gap-3">
+              {section.items.map(item => (
+                <div key={item.name} className="bg-white p-4 rounded-xl shadow-sm flex justify-between items-start border border-gray-100">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800">{item.name}</h3>
+                    <p className="text-amber-600 font-black mt-1">${item.price}</p>
+                    
+                    {/* 選項按鈕 */}
+                    <div className="flex gap-2 mt-2">
+                      <button onClick={() => addToCart(item)} className="bg-gray-100 text-[10px] px-2 py-1 rounded font-bold">原味</button>
+                      {(section.category === "漢堡類" || section.category === "吐司類" || section.category === "蛋餅類") && (
+                        <button onClick={() => addToCart(item, 10, "加起司")} className="bg-orange-50 text-orange-600 text-[10px] px-2 py-1 rounded font-bold border border-orange-100">+起司$10</button>
+                      )}
+                      {(section.category === "漢堡類" || section.category === "麵類/點心類") && (
+                        <button onClick={() => addToCart(item, 10, "加蛋")} className="bg-amber-50 text-amber-700 text-[10px] px-2 py-1 rounded font-bold border border-amber-100">+加蛋$10</button>
+                      )}
+                      {section.category === "飲品" && (
+                        <button onClick={() => addToCart(item, 5, "大杯")} className="bg-blue-50 text-blue-600 text-[10px] px-2 py-1 rounded font-bold border border-blue-100">大杯+$5</button>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => addToCart(item)} className="bg-amber-400 p-2 rounded-lg text-white shadow-sm active:scale-90 transition-transform">
+                    <ShoppingCart size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Cart Summary (Floating) */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-30 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-gray-500 font-bold">已選 {cart.length} 項</p>
+            <p className="text-xl font-black text-amber-500">${totalPrice}</p>
+          </div>
+          <button 
+            onClick={() => setIsCheckoutOpen(true)}
+            className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2"
+          >
+            去結帳 <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Checkout Page */}
+      {isCheckoutOpen && (
+        <div className="fixed inset-0 bg-white z-[40] overflow-y-auto p-6 pb-24">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-black">最後一步</h2>
+            <button onClick={() => setIsCheckoutOpen(false)} className="p-2 bg-gray-100 rounded-full"><X /></button>
+          </div>
+
+          <div className="space-y-6">
+            <section>
+              <label className="block text-sm font-bold text-gray-400 mb-2 underline decoration-amber-300">1. 請填寫桌號 / 姓名</label>
+              <input 
+                type="text" 
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                placeholder="例如：3桌 或 外帶王先生"
+                className="w-full p-4 bg-gray-50 rounded-xl border-2 border-gray-100 focus:border-amber-400 outline-none font-bold"
+              />
+            </section>
+
+            <section>
+              <label className="block text-sm font-bold text-gray-400 mb-2 underline decoration-amber-300">2. 選擇付款方式</label>
+              <div className="grid grid-cols-1 gap-3">
+                <button onClick={() => setPaymentMethod('cash')} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === 'cash' ? 'border-slate-900 bg-slate-900 text-white' : 'border-gray-100'}`}>
+                  <Banknote size={20} /> <span className="font-bold">現場付款 / 櫃檯結帳</span>
+                </button>
+                <button onClick={() => setPaymentMethod('linepay')} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === 'linepay' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-100'}`}>
+                  <Smartphone size={20} /> <span className="font-bold">LINE Pay / 街口 (現場掃碼)</span>
+                </button>
+                <button onClick={() => setPaymentMethod('crypto')} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${paymentMethod === 'crypto' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-100'}`}>
+                  <Wallet size={20} /> <span className="font-bold">虛擬貨幣支付</span>
+                </button>
+              </div>
+            </section>
+
+            {paymentMethod === 'crypto' && (
+              <div className="bg-indigo-900 text-white p-5 rounded-2xl space-y-4">
+                <div className="flex gap-2">
+                  <button onClick={() => setCryptoType('USDT')} className={`flex-1 py-2 rounded-lg font-bold text-xs ${cryptoType === 'USDT' ? 'bg-white text-indigo-900' : 'bg-indigo-800'}`}>USDT (TRC20)</button>
+                  <button onClick={() => setCryptoType('SOL')} className={`flex-1 py-2 rounded-lg font-bold text-xs ${cryptoType === 'SOL' ? 'bg-white text-indigo-900' : 'bg-indigo-800'}`}>SOL (Solana)</button>
+                </div>
+                <div className="text-center py-2 border-t border-indigo-700">
+                  <p className="text-[10px] opacity-70 mb-1">應付金額</p>
+                  <p className="text-2xl font-black">
+                    {cryptoType === 'USDT' ? `${(totalPrice / 32.5).toFixed(2)} USDT` : `${solPrice} SOL`}
+                  </p>
+                </div>
+                <div className="bg-white p-3 rounded-xl flex flex-col items-center">
+                   <div className="w-32 h-32 bg-gray-200 mb-2 flex items-center justify-center text-gray-400 text-[10px]">QR CODE</div>
+                   <p className="text-[8px] text-gray-400 break-all select-all font-mono">
+                     {cryptoType === 'USDT' ? 'TRC20_ADDRESS_EXAMPLE_123456' : 'SOL_ADDRESS_EXAMPLE_SOL_CHAIN_789'}
+                   </p>
+                </div>
+                <p className="text-[10px] text-center opacity-60">※ 轉帳後請告知老闆您的錢包末 4 碼</p>
+              </div>
+            )}
+
+            <section className="pt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold">訂單明細</h3>
+                <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-bold">共 {cart.length} 項</span>
+              </div>
+              <div className="max-h-40 overflow-y-auto space-y-2 mb-6">
+                {cart.map(item => (
+                  <div key={item.uniqueId} className="flex justify-between text-sm">
+                    <span className="text-gray-600">{item.name} {item.extraLabel && <small className="text-amber-600">[{item.extraLabel}]</small>}</span>
+                    <span className="font-bold">${item.finalPrice}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <button 
+                disabled={isSubmitting}
+                onClick={handleCheckout}
+                className="w-full bg-amber-400 text-slate-900 py-4 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 disabled:bg-gray-200"
+              >
+                {isSubmitting ? "傳送中..." : <><Send size={24}/> 送出訂單給老闆</>}
+              </button>
+            </section>
+          </div>
+        </div>
+      )}
+
+      {/* Success View */}
+      {orderStatus === 'success' && (
+        <div className="fixed inset-0 bg-white z-[50] flex flex-col items-center justify-center p-8 text-center">
+          <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 animate-bounce">
+            <Send size={48} />
+          </div>
+          <h2 className="text-3xl font-black mb-2">點餐成功！</h2>
+          <p className="text-gray-500 mb-8 font-bold">老闆已收到您的通知。<br/>請至櫃檯或座位稍候。</p>
+          <button onClick={() => setOrderStatus(null)} className="w-full max-w-xs py-4 bg-slate-900 text-white rounded-2xl font-bold">好的，知道了</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
